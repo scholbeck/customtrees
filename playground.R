@@ -54,43 +54,50 @@ SS = function(x, y) {
   var(y)
 }
 
-# marginals = marginalEffects(mod, data, "rm", step = 1)
+
+
+marginals = marginalEffects(mod, data, "rm", step = 1)
+mean(marginals)
 # parent_node = data
 
 ame_list = list()
 
-recursive_binary_split = function(parent_node) {
-  str(parent_node)
+recursive_binary_split = function(list_obj, parent_node) {
+
   marginals = marginalEffects(mod, parent_node, "rm", step = 1)
   split = split_parent_node(marginals, parent_node, objective = SS, optimizer = find_best_binary_split)
-  child.nodes = create_child_nodes(split)
-  child.node.1 = child.nodes[[1]]
-  child.node.2 = child.nodes[[2]]
-  marginals.child.1 = marginalEffects(mod, child.node.1, "rm", step = 1)
-  # print(var(marginals.child.1))
-  marginals.child.2 = marginalEffects(mod, child.node.2, "rm", step = 1)
-  # print(var(marginals.child.2))
-  
-  if (var(marginals.child.1) >= 5) {
-    recursive_binary_split(parent_node = child.node.1)
+  if (nrow(split) >= 1) {
+    child.nodes = create_child_nodes(parent_node, split)
+    child.node.1 = child.nodes[[1]]
+    child.node.2 = child.nodes[[2]]
+    marginals.child.1 = marginalEffects(mod, child.node.1, "rm", step = 1)
+    # print(var(marginals.child.1))
+    marginals.child.2 = marginalEffects(mod, child.node.2, "rm", step = 1)
+    # print(var(marginals.child.2))
+    
+    if (sd(marginals.child.1) >= abs(mean(marginals.child.1))) {
+      list_obj = recursive_binary_split(list_obj, parent_node = child.node.1)
+    } else {
+      list_obj = append(list_obj, mean(marginals.child.1))
+    }
+    
+    if (sd(marginals.child.2) >= abs(mean(marginals.child.1))) {
+      list_obj = recursive_binary_split(list_obj, parent_node = child.node.2)
+    } else {
+      list_obj = append(list_obj, mean(marginals.child.2))
+    }
   } else {
-    ame_list = append(ame_list, mean(marginals.child.1))
   }
-  if (var(marginals.child.2) >= 5) {
-    recursive_binary_split(parent_node = child.node.2)
-  } else {
-    ame_list = append(ame_list, mean(marginals.child.2))
-  }
-  return(ame_list)
+  return(list_obj)
 }
 
-
-recursive_binary_split(data)
-
-split_parent_node(marginals.child.1, childs[[1]], objective = SS, optimizer = find_best_binary_split)
-split_parent_node(marginals.child.2, childs[[2]], objective = SS, optimizer = find_best_binary_split)
+recursive_binary_split(ame_list, data)
 
 
+  split_parent_node(marginals.child.1, childs[[1]], objective = SS, optimizer = find_best_binary_split)
+  split_parent_node(marginals.child.2, childs[[2]], objective = SS, optimizer = find_best_binary_split)
+  
+  
 
 split.list = list()
 
